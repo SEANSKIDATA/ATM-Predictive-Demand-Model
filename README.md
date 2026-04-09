@@ -7,6 +7,41 @@
 
 ---
 
+## How to Run This Project
+
+### Prerequisites
+```bash
+pip install -r requirements.txt
+```
+
+### Option 1 — Run the Python Model (Google Colab recommended)
+1. Open [Google Colab](https://colab.research.google.com)
+2. Upload `atm_predictive_demand_model.py` or paste the code into a new notebook
+3. Run all cells — the model will generate the dataset, run the forecast, and produce the dashboard PNG
+
+### Option 2 — Run the SQL Queries (MySQL Workbench)
+1. Import the three CSV files into MySQL as tables:
+   - `atm_master.csv` → table: `atm_master`
+   - `atm_transactions.csv` → table: `atm_transactions`
+   - `atm_forecast.csv` → table: `atm_forecast`
+2. Run queries in order from the `/sql` folder
+3. Note: Add `SET SESSION sql_mode = '';` before Query 4 if using MySQL strict mode
+
+### Files in This Repo
+
+| File/Folder | Purpose |
+|---|---|
+| `atm_predictive_demand_model.py` | Main Python model — dataset generation, forecasting, visualization |
+| `atm_model_validation.py` | Model validation — MAE, RMSE, MAPE, feature engineering docs |
+| `atm_master.csv` | 50-ATM master reference table |
+| `atm_transactions.csv` | 18,300-row full-year transaction time series |
+| `atm_forecast.csv` | 72-hour forward projection with risk scores |
+| `requirements.txt` | Python dependencies |
+| `/sql` | 5 production SQL queries with window functions and CTEs |
+| `/screenshots` | MySQL Workbench live execution results for all 5 queries |
+
+---
+
 ## Business Question
 
 Based on historical transaction patterns, day-of-week behavior, tax season demand spikes, and terminal type — **which ATMs will hit a critical cash threshold in the next 72 hours?**
@@ -117,7 +152,7 @@ This project extends the synthetic dataset from **ATM-Network-Risk-Intelligence*
 
 🔗 [View Live on Tableau Public](https://public.tableau.com/app/profile/sean.codner/viz/ATMPredictiveDemandModel/Dashboard1)
 
-![ATM Predictive Demand Dashboard](atm_predictive_dashboard.png)
+![ATM Predictive Demand Dashboard](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/atm_predictive_dashboard.png)
 
 ---
 
@@ -207,6 +242,10 @@ WHERE t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
 ORDER BY t.atm_id, t.transaction_date;
 ```
 
+**Live execution output — MySQL Workbench:**
+
+> *Query 1 shares the rolling burn rate logic validated in Query 2's output below. See `screenshots/atm_query2_72hr_forecast.png` for the window function results in action.*
+
 ---
 
 ### Query 2 — 72-Hour Cash Runway Forecast
@@ -289,6 +328,11 @@ FROM forecast f
 ORDER BY projected_pct_remaining ASC;
 ```
 
+**Live execution output — MySQL Workbench:**
+
+![Query 2 — 72-Hour Forecast Results (Top)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query2_72hr_forecast.png)
+![Query 2 — 72-Hour Forecast Results (Full)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query2_72hr_forecast2.png)
+
 ---
 
 ### Query 3 — Composite Risk Score Priority Register
@@ -337,6 +381,11 @@ FROM risk_scored rs
 ORDER BY composite_risk_score DESC;
 ```
 
+**Live execution output — MySQL Workbench:**
+
+![Query 3 — Risk Score Results](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query3_risk_score.png)
+![Query 3 — Risk Score Priority Rank](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query3_risk_score2.png)
+
 ---
 
 ### Query 4 — Tax Season Demand Pattern Analysis
@@ -384,6 +433,11 @@ GROUP BY ss.location_type, ss.tax_service_proximity, ss.season
 ORDER BY ss.location_type, ss.tax_service_proximity DESC, pct_lift_vs_baseline DESC;
 ```
 
+**Live execution output — MySQL Workbench:**
+
+![Query 4 — Tax Season Analysis (Code)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query4_tax_season.png)
+![Query 4 — Tax Season Analysis (Results)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query4_tax_season2.png)
+
 ---
 
 ### Query 5 — Day-of-Week Demand Pattern by Terminal Tier
@@ -413,6 +467,11 @@ INNER JOIN atm_master l ON t.atm_id = l.atm_id
 GROUP BY l.terminal_type, DAYNAME(t.transaction_date), DAYOFWEEK(t.transaction_date)
 ORDER BY l.terminal_type, DAYOFWEEK(t.transaction_date);
 ```
+
+**Live execution output — MySQL Workbench:**
+
+![Query 5 — Day of Week Demand (Code)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query5_dow_demand.png)
+![Query 5 — Day of Week Demand (Results)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query5_dow_demand2.png)
 
 ---
 
