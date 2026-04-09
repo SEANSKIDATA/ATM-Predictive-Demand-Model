@@ -1,0 +1,51 @@
+atm_id,location_name,city,location_type,distance_from_branch_miles,cash_capacity_dollars,cash_tolerance,tax_service_proximity,terminal_type,emergency_multiplier,revenue_impact_per_hour
+ATM001,Downtown Houston Main,Houston,Urban,2.1,80000,Medium,False,Local,2.5,210
+ATM002,Galleria Mall,Houston,Mall,4.5,60000,Medium,False,Local,2.5,240
+ATM003,IAH Airport Terminal A,Houston,Airport,18.2,100000,Low,False,Local,2.5,420
+ATM004,IAH Airport Terminal B,Houston,Airport,18.4,100000,Low,False,Local,2.5,420
+ATM005,Toyota Center Arena,Houston,Arena,3.1,120000,Zero,False,Local,2.5,380
+ATM006,NRG Stadium,Houston,Stadium,5.2,120000,Zero,False,Local,2.5,380
+ATM007,Tunica Casino MS,Tunica MS,Casino,142.0,150000,Zero,False,Over The Road,4.0,850
+ATM008,Laughlin Casino NV,Laughlin NV,Casino,156.0,150000,Zero,False,Over The Road,4.0,850
+ATM009,Biloxi Casino MS,Biloxi MS,Casino,87.0,120000,Zero,False,Remote,3.0,850
+ATM010,Shreveport Casino LA,Shreveport LA,Casino,211.0,150000,Zero,False,Over The Road,4.0,850
+ATM011,Memorial Hospital,Houston,Hospital,6.3,60000,Low,False,Local,2.5,290
+ATM012,Texas Medical Center,Houston,Hospital,7.1,60000,Low,False,Local,2.5,290
+ATM013,Hobby Airport,Houston,Airport,12.4,80000,Low,False,Local,2.5,420
+ATM014,Sugar Land Town Square,Sugar Land,Retail,22.1,50000,Medium,False,Local,2.5,120
+ATM015,The Woodlands Mall,The Woodlands,Mall,31.5,60000,Medium,False,Remote,3.0,240
+ATM016,Katy Mills Mall,Katy,Mall,35.2,60000,Medium,False,Remote,3.0,240
+ATM017,Baybrook Mall,Friendswood,Mall,28.7,60000,Medium,False,Remote,3.0,240
+ATM018,First Colony Mall,Sugar Land,Mall,24.3,50000,Medium,False,Local,2.5,240
+ATM019,Midtown Houston,Houston,Urban,3.8,50000,Medium,False,Local,2.5,210
+ATM020,Montrose District,Houston,Urban,4.1,50000,Medium,False,Local,2.5,210
+ATM021,Heights Boulevard,Houston,Urban,5.2,50000,Medium,False,Local,2.5,210
+ATM022,EaDo District,Houston,Urban,3.9,50000,Medium,False,Local,2.5,210
+ATM023,Greenway Plaza,Houston,Office,6.8,60000,Medium,False,Local,2.5,160
+ATM024,Westheimer Corridor,Houston,Retail,5.5,60000,Medium,False,Local,2.5,120
+ATM025,Almeda Mall,Houston,Mall,18.9,50000,Medium,False,Local,2.5,240
+ATM026,Deerbrook Mall,Humble,Mall,22.4,60000,Medium,False,Local,2.5,240
+ATM027,Willowbrook Mall,Houston,Mall,28.1,60000,Medium,False,Remote,3.0,240
+ATM028,Pearland Town Center,Pearland,Retail,24.6,50000,Medium,False,Local,2.5,120
+ATM029,League City Center,League City,Retail,31.2,50000,Medium,False,Remote,3.0,120
+ATM030,Friendswood Market,Friendswood,Retail,29.8,50000,Medium,False,Remote,3.0,120
+ATM031,Conroe Crossroads,Conroe,Retail,45.2,40000,High,True,Remote,3.0,120
+ATM032,Huntsville Walmart,Huntsville,Retail,71.3,40000,High,True,Remote,3.0,120
+ATM033,Lufkin Center,Lufkin,Retail,112.4,40000,High,False,Over The Road,4.0,120
+ATM034,Nacogdoches Square,Nacogdoches,Retail,128.7,40000,High,False,Over The Road,4.0,120
+ATM035,Beaumont Mall,Beaumont,Mall,88.3,50000,High,False,Remote,3.0,240
+ATM036,Orange Walmart,Orange,Retail,98.1,40000,High,True,Remote,3.0,120
+ATM037,Port Arthur Center,Port Arthur,Retail,91.4,40000,High,False,Remote,3.0,120
+ATM038,Lake Charles Casino LA,Lake Charles LA,Casino,135.0,120000,Zero,False,Over The Road,4.0,850
+ATM039,Galveston Strand,Galveston,Tourist,52.3,60000,Medium,False,Remote,3.0,190
+ATM040,Texas City Market,Texas City,Retail,44.1,40000,High,True,Remote,3.0,120
+ATM041,Pasadena Town Square,Pasadena,Retail,16.2,50000,Medium,False,Local,2.5,120
+ATM042,Deer Park Center,Deer Park,Retail,18.9,40000,High,False,Local,2.5,120
+ATM043,La Marque Walmart,La Marque,Retail,38.4,40000,High,True,Remote,3.0,120
+ATM044,Angleton Market,Angleton,Retail,52.1,40000,High,False,Remote,3.0,120
+ATM045,Wharton Center,Wharton,Retail,68.3,40000,High,False,Remote,3.0,120
+ATM046,El Campo Square,El Campo,Retail,82.4,40000,High,False,Remote,3.0,120
+ATM047,Victoria Mall,Victoria,Mall,131.2,50000,High,False,Over The Road,4.0,240
+ATM048,Bay City Market,Bay City,Retail,95.6,40000,High,False,Remote,3.0,120
+ATM049,Palacios Waterfront,Palacios,Tourist,143.2,40000,High,False,Over The Road,4.0,190
+ATM050,Port Lavaca Center,Port Lavaca,Retail,118.7,40000,High,False,Over The Road,4.0,120
