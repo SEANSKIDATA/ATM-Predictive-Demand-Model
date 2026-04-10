@@ -405,3 +405,64 @@ print("CSVs saved successfully")
 print(f"  atm_master.csv        — {len(atm_df)} rows")
 print(f"  atm_transactions.csv  — {len(txn_df):,} rows")
 print(f"  atm_forecast.csv      — {len(forecast_df)} rows")
+
+# =============================================================================
+# SECTION 6 — RECOMMENDED ACTION LAYER
+# Converts risk scores into operational decisions
+# SQL → Model → Dashboard → DECISION
+# =============================================================================
+
+def recommended_action(row):
+    if row['composite_risk_score'] >= 140:
+        return 'IMMEDIATE DISPATCH'
+    elif row['composite_risk_score'] >= 100:
+        return 'SCHEDULE NEXT ROUTE'
+    elif row['composite_risk_score'] >= 60:
+        return 'MONITOR CLOSELY'
+    else:
+        return 'STANDARD SCHEDULE'
+
+def risk_tier(row):
+    if row['composite_risk_score'] >= 140:
+        return 'CRITICAL'
+    elif row['composite_risk_score'] >= 100:
+        return 'HIGH'
+    elif row['composite_risk_score'] >= 60:
+        return 'MEDIUM'
+    else:
+        return 'LOW'
+
+forecast_df['recommended_action'] = forecast_df.apply(recommended_action, axis=1)
+forecast_df['risk_tier'] = forecast_df.apply(risk_tier, axis=1)
+
+# Headline KPIs
+total_revenue_at_risk = (forecast_df[forecast_df['is_critical_72hr']]['revenue_at_risk_72hr']).sum()
+critical_count = forecast_df[forecast_df['risk_tier'] == 'CRITICAL'].shape[0]
+avg_days_to_failure = forecast_df[forecast_df['days_until_empty'] < 99]['days_until_empty'].mean()
+immediate_dispatch = forecast_df[forecast_df['recommended_action'] == 'IMMEDIATE DISPATCH'].shape[0]
+
+print("\n" + "=" * 70)
+print("OPERATIONAL INTELLIGENCE SUMMARY")
+print("ATM Cash Risk & Replenishment Intelligence")
+print("=" * 70)
+print(f"\n  💰 Revenue at Risk (Next 72 Hours):  ${total_revenue_at_risk:>10,.0f}")
+print(f"  🚨 Critical ATMs Requiring Action:   {critical_count:>10}")
+print(f"  ⚡ Immediate Dispatch Required:       {immediate_dispatch:>10}")
+print(f"  ⏱  Avg Days to Failure (At-Risk):    {avg_days_to_failure:>10.1f} days")
+
+print(f"\n  TOP 10 ATMs — OPERATIONAL ACTION REGISTER")
+print(f"  {'Rank':<5} {'ATM':<8} {'Location':<28} {'Days Empty':<12} {'Rev@Risk':<12} {'Tier':<10} {'Action'}")
+print(f"  {'-'*95}")
+
+top10_action = forecast_df.head(10)
+for _, row in top10_action.iterrows():
+    days = f"{row['days_until_empty']:.1f}d" if row['days_until_empty'] < 99 else "<1d"
+    rev = f"${row['revenue_at_risk_72hr']:,.0f}"
+    print(f"  #{int(row['priority_rank']):<4} {row['atm_id']:<8} {row['location_name'][:26]:<28} "
+          f"{days:<12} {rev:<12} {row['risk_tier']:<10} {row['recommended_action']}")
+
+print("\n" + "=" * 70)
+
+# Save updated forecast with action layer
+forecast_df.to_csv('/home/claude/ATM-Predictive-Demand-Model/atm_forecast.csv', index=False)
+print("Updated atm_forecast.csv with recommended_action and risk_tier columns")
