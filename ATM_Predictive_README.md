@@ -1,44 +1,65 @@
 # ATM Predictive Demand Model
 ### SEANSKIDATA Analytics Portfolio — Project 3
 
-> **The shift from reactive to predictive:** Projects 1 and 2 identified what the network's risk state *was*. This project answers what it will be — 72 hours from now.
-
 🔗 [View Interactive Dashboard on Tableau Public](https://public.tableau.com/app/profile/sean.codner/viz/ATMPredictiveDemandModel/Dashboard1)
 
 ---
 
-## How to Run This Project
+## 3 Things to Know in 20 Seconds
 
-### Prerequisites
+> **1. The problem:** Standard ATM reporting tells you a machine is low on cash. By then it's too late — emergency dispatch costs 4x a scheduled run.
+>
+> **2. The solution:** This model forecasts which machines will hit critical cash levels in the next 72 hours, scores them by operational urgency, and outputs a prioritized dispatch action for every machine in the network.
+>
+> **3. The insight that makes it different:** A low-volume casino ATM 142 miles from the nearest branch with 0.8 days of cash is more urgent than a high-volume urban machine with 6 days of runway. This model knows that. Standard reporting doesn't.
+
+---
+
+## Quick Start
+
 ```bash
+# Clone the repo
+git clone https://github.com/SEANSKIDATA/ATM-Predictive-Demand-Model.git
+cd ATM-Predictive-Demand-Model
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the full model — generates dataset, forecast, dashboard PNG, and action register
+python atm_predictive_demand_model.py
+
+# Run model validation — MAE, RMSE, feature engineering breakdown
+python atm_model_validation.py
 ```
 
-### Option 1 — Run the Python Model (Google Colab recommended)
-1. Open [Google Colab](https://colab.research.google.com)
-2. Upload `atm_predictive_demand_model.py` or paste the code into a new notebook
-3. Run all cells — the model will generate the dataset, run the forecast, and produce the dashboard PNG
+**To run the SQL queries:**
+```sql
+-- Import CSVs into MySQL first:
+-- atm_master.csv      → table: atm_master
+-- atm_transactions.csv → table: atm_transactions
+-- atm_forecast.csv    → table: atm_forecast
 
-### Option 2 — Run the SQL Queries (MySQL Workbench)
-1. Import the three CSV files into MySQL as tables:
-   - `atm_master.csv` → table: `atm_master`
-   - `atm_transactions.csv` → table: `atm_transactions`
-   - `atm_forecast.csv` → table: `atm_forecast`
-2. Run queries in order from the `/sql` folder
-3. Note: Add `SET SESSION sql_mode = '';` before Query 4 if using MySQL strict mode
+-- Then run in order:
+SOURCE sql/atm_query1_burn_rate.sql;
+SOURCE sql/atm_query2_72hr_forecast.sql;
+SOURCE sql/atm_query3_risk_score.sql;
+SET SESSION sql_mode = '';  -- Required for Query 4 in MySQL strict mode
+SOURCE sql/atm_query4_tax_season.sql;
+SOURCE sql/atm_query5_dow_demand.sql;
+```
 
-### Files in This Repo
+### Repo Structure
 
-| File/Folder | Purpose |
+| File / Folder | Purpose |
 |---|---|
-| `atm_predictive_demand_model.py` | Main Python model — dataset generation, forecasting, visualization |
-| `atm_model_validation.py` | Model validation — MAE, RMSE, MAPE, feature engineering docs |
-| `atm_master.csv` | 50-ATM master reference table |
+| `atm_predictive_demand_model.py` | Main model — dataset, forecast, dashboard, action register |
+| `atm_model_validation.py` | Validation — MAE, RMSE, MAPE, feature engineering docs |
+| `atm_master.csv` | 50-ATM master reference |
 | `atm_transactions.csv` | 18,300-row full-year transaction time series |
-| `atm_forecast.csv` | 72-hour forward projection with risk scores |
+| `atm_forecast.csv` | 72-hour projection with risk scores and dispatch actions |
 | `requirements.txt` | Python dependencies |
-| `/sql` | 5 production SQL queries with window functions and CTEs |
-| `/screenshots` | MySQL Workbench live execution results for all 5 queries |
+| `/sql` | 5 production queries — window functions, CTEs, joins |
+| `/screenshots` | MySQL Workbench live execution results |
 
 ---
 
