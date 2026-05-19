@@ -90,11 +90,9 @@ This model makes it visible.
 
 ---
 
-## The Penn Station Effect
+## The Tax Service Proximity Effect
 
-During the transition period when tax preparation services shifted from issuing refund checks to loading refunds onto debit cards, operations teams observed an anomaly: machines classified as **High tolerance / low priority** all year were suddenly transacting like high-volume urban terminals.
-
-Customers were walking directly from tax offices to the nearest ATM and withdrawing at the machine's maximum limit — $500 per transaction — compared to the normal $85–$165 baseline. With refunds averaging $3,000+, many customers returned multiple times within the same day.
+During the transition period when tax preparation services shifted from issuing refund checks to loading refunds onto debit cards, operations teams observed an anomaly: ATMs adjacent to H&R Block, Jackson Hewitt, and independent tax offices — classified as routine retail / low priority all year — were suddenly transacting like high-volume urban terminals.
 
 **The result:** 5 machines in this model that register as routine all year become the network's most cash-hungry terminals for 28 days. Standard reporting never flags them. This model does.
 
