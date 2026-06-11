@@ -13,7 +13,7 @@ WITH risk_scored AS (
         f.revenue_at_risk_72hr,
        
         f.tax_service_proximity,
-        GREATEST(0, (30 - f.projected_pct_remaining) * 2) +
+        LEAST(60, GREATEST(0, (30 - f.projected_pct_remaining) * 2)) +
         CASE f.terminal_type
             WHEN 'Over The Road' THEN 40
             WHEN 'Remote'        THEN 20
