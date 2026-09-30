@@ -25,7 +25,7 @@ WITH risk_scored AS (
         END +
         (f.revenue_impact_per_hour / 20) +
         CASE WHEN f.tax_service_proximity = TRUE
-              AND MONTH(CURDATE()) IN (2,3) THEN 25 ELSE 0
+              AND (SELECT MAX(transaction_date) FROM atm_transactions) BETWEEN '2024-02-15' AND '2024-03-15' THEN 25 ELSE 0
         END AS composite_risk_score
     FROM atm_forecast f
 )
