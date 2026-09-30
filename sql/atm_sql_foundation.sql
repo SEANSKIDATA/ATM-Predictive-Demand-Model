@@ -44,7 +44,7 @@ SELECT
 FROM atm_transactions t
 INNER JOIN atm_master l
     ON t.atm_id = l.atm_id
-WHERE t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+WHERE t.transaction_date >= '2024-12-01'   -- dataset ends 2024-12-31; CURDATE() would return no rows
 ORDER BY t.atm_id, t.transaction_date;
 
 
@@ -78,7 +78,7 @@ WITH daily_burn AS (
             ROWS BETWEEN 13 PRECEDING AND 7 PRECEDING
         ) AS prior_week_avg_burn
     FROM atm_transactions t
-    WHERE t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+    WHERE t.transaction_date >= '2024-12-01'   -- dataset ends 2024-12-31; CURDATE() would return no rows
 ),
 forecast AS (
     SELECT
@@ -181,7 +181,7 @@ WITH risk_scored AS (
         f.tax_service_proximity,
         -- Composite risk score calculation
         -- Component 1: Cash depletion urgency (0-60 pts)
-        GREATEST(0, (30 - f.projected_pct_remaining) * 2) +
+        LEAST(60, GREATEST(0, (30 - f.projected_pct_remaining) * 2)) +   -- capped at 60, matching the Python model
         -- Component 2: Terminal type / distance weight (5-40 pts)
         CASE f.terminal_type
             WHEN 'Over The Road' THEN 40
@@ -200,7 +200,7 @@ WITH risk_scored AS (
         -- Component 5: Tax service proximity premium (seasonal)
         CASE
             WHEN f.tax_service_proximity = TRUE
-            AND MONTH(CURDATE()) IN (2, 3)
+            AND (SELECT MAX(transaction_date) FROM atm_transactions) BETWEEN '2024-02-15' AND '2024-03-15'
             THEN 25
             ELSE 0
         END AS composite_risk_score
