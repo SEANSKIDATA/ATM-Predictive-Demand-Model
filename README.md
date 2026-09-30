@@ -1,15 +1,23 @@
-ATM Predictive Demand Model
-SEANSKIDATA Analytics Portfolio — Project 3
-🔗 View Interactive Dashboard on Tableau Public
+![ATM Predictive Demand Model](banner.png)
+
+# ATM Predictive Demand Model
+### SEANSKIDATA Analytics Portfolio — Project 3
+🔗 [View Interactive Dashboard on Tableau Public](https://public.tableau.com/app/profile/sean.codner/viz/ATMPredictiveDemandModel/Dashboard1)
+
 ---
-3 Things to Know in 20 Seconds
+
+## 3 Things to Know in 20 Seconds
+
 > **1. The problem:** Standard ATM reporting tells you a machine is low on cash. By then it's too late — emergency dispatch costs 4x a scheduled run.
 >
 > **2. The solution:** This model forecasts which machines will hit critical cash levels in the next 72 hours, scores them by operational urgency, and outputs a prioritized dispatch action for every machine in the network.
 >
-> **3. The insight that makes it different:** A low-volume casino ATM 142 miles from the nearest branch with 0.8 days of cash is more urgent than a high-volume urban machine with 6 days of runway. This model knows that. Standard reporting doesn't.
+> **3. The insight that makes it different:** A casino ATM 142 miles from the nearest branch with 0.9 days of cash is more urgent than an urban machine with 6 days of runway. A cash-balance snapshot shows current state; this model combines trajectory, distance, outage tolerance, and business impact to decide which machine gets attention first.
+
 ---
-Quick Start
+
+## Quick Start
+
 ```bash
 # Clone the repo
 git clone https://github.com/SEANSKIDATA/ATM-Predictive-Demand-Model.git
@@ -23,6 +31,7 @@ pip install -r requirements.txt
 # and validation end-to-end (deterministic, seed 42)
 ```
 To run the SQL queries:
+
 ```sql
 -- Import CSVs into MySQL first:
 -- atm_master.csv      → table: atm_master
@@ -37,109 +46,172 @@ SET SESSION sql_mode = '';  -- Required for Query 4 in MySQL strict mode
 SOURCE sql/atm_query4_tax_season.sql;
 SOURCE sql/atm_query5_dow_demand.sql;
 ```
-Repo Structure
-File / Folder	Purpose
-`atm_predictive_demand_model.ipynb`	Full model — data generation, forecast, risk scoring, dashboard, validation
-`atm_master.csv`	50-ATM master reference
-`atm_transactions.csv`	18,300-row full-year transaction time series
-`atm_forecast.csv`	72-hour projection with risk scores and dispatch actions
-`requirements.txt`	Python dependencies
-`/sql`	5 production queries — window functions, CTEs, joins
-`/screenshots`	MySQL Workbench live execution results
+
+## Repo Structure
+
+| File / Folder | Purpose |
+|---|---|
+| `atm_predictive_demand_model.ipynb` | Full model — data generation, forecast, risk scoring, dashboard, validation |
+| `atm_master.csv` | 50-ATM master reference |
+| `atm_transactions.csv` | 18,300-row full-year transaction time series |
+| `atm_forecast.csv` | 72-hour projection with risk scores and dispatch actions |
+| `requirements.txt` | Python dependencies |
+| `tests/verify_published_numbers.py` | Re-runs the notebook's code and checks every number in this README |
+| `CHANGELOG.md` | What changed and why |
+| `/sql` | 5 production queries — window functions, CTEs, joins |
+| `/screenshots` | MySQL Workbench live execution results |
+
 ---
-Business Question
+
+## Business Question
+
 Based on historical transaction patterns, day-of-week behavior, tax season demand spikes, and terminal type — which ATMs will hit a critical cash threshold in the next 72 hours?
+
 Standard ATM reporting flags machines that are already low. By then, the options are limited and expensive. This model forecasts forward — giving operations teams time to dispatch on schedule rather than emergency.
+
 ---
-The Core Insight
+
+## The Core Insight
+
 Not all cash depletion is equal — and not all seasons are equal.
-Tax season (February–April) is the single largest demand event in the ATM calendar. When IRS refunds hit direct deposit accounts in mid-February, cash withdrawal volume at Retail and Urban ATMs spikes 40–60% above baseline. This isn't a minor seasonal adjustment — it's an operational planning event that standard dashboards are blind to.
+
+Tax season (February–April) is the single largest demand event in the ATM calendar. When IRS refunds hit direct deposit accounts in mid-February, cash withdrawal volume at Retail and Urban ATMs spikes 40–60% above baseline. This isn't a minor seasonal adjustment — it's an operational planning event that balance-only reporting may not capture.
+
 This model makes it visible.
-Season	Retail/Urban Lift	Casino Lift	Mall Lift
-Tax Season Peak (Feb 15 – Mar 15)	+52–53%	+36%	+45%
-Tax Season Ramp (Jan, Apr)	+15–25%	+9%	+15%
-Holiday (Nov–Dec)	+18%	+18%	+18%
-Baseline (May–Oct)	—	—	—
-Multipliers sourced from real ATM network operations experience.
+
+| Season | Retail/Urban Lift | Casino Lift | Mall Lift |
+|---|---|---|---|
+| Tax Season Peak (Feb 15 – Mar 15) | +52–53% | +36% | +45% |
+| Tax Season Ramp (Jan, Apr) | +15–25% | +9% | +15% |
+| Holiday (Nov–Dec) | +18% | +18% | +18% |
+| Baseline (May–Oct) | — | — | — |
+
+Multipliers are set from real ATM network operations experience. They are design assumptions for the synthetic data, not measurements from a live network.
+
 ---
-The Tax Service Proximity Effect
+
+## The Tax Service Proximity Effect
+
 During the transition period when tax preparation services shifted from issuing refund checks to loading refunds onto debit cards, operations teams observed an anomaly: ATMs adjacent to H&R Block, Jackson Hewitt, and independent tax offices — classified as routine retail / low priority all year — were suddenly transacting like high-volume urban terminals.
-The result: 5 machines in this model that register as routine all year become the network's most cash-hungry terminals for 28 days. Standard reporting never flags them. This model does.
-Machine Type	Baseline Daily Cash	Tax Peak Daily Cash	Lift
-Retail (standard)	$8,073	$12,369	+53%
-Urban	$15,128	$23,036	+52%
-Casino	$40,262	$54,876	+36%
-Tax Service Proximity	$7,779	$68,137	+776%
+
+The result: 5 machines in this model that register as routine all year become the network's most cash-hungry terminals for 28 days. Balance-only reporting may not flag them in time; this model does.
+
+| Machine Type | Baseline Daily Cash | Tax Peak Daily Cash | Lift |
+|---|---|---|---|
+| Retail (standard) | $8,073 | $12,369 | +53% |
+| Urban | $15,128 | $23,036 | +52% |
+| Casino | $40,262 | $54,876 | +36% |
+| Tax Service Proximity | $7,779 | $68,137 | +776% |
+
 ---
-Project Architecture
+
+## Project Architecture
+
 This project extends the synthetic dataset from ATM-Network-Risk-Intelligence with:
-Full calendar year (366 days — 2024 is a leap year) of time-series transaction data
-Tax season demand modeling — peak refund window, ramp periods, location-type weighting
-Tax service proximity flagging — 5 machines reclassified to Zero tolerance during peak window
-Day-of-week demand patterns — Friday/Saturday peaks built into every machine
-Forward-looking 72-hour cash burn forecast — per machine, per terminal tier
-Composite risk scoring — cash level + terminal type + cash tolerance + revenue impact
-Interactive Tableau dashboard — 6-panel operational view of network health
-Dataset Structure
-Table	Records	Description
-`atm_master.csv`	50 ATMs	Master reference — location, terminal type, capacity, tolerance, tax service proximity
-`atm_transactions.csv`	18,300 rows	366-day daily transaction time series
-`atm_forecast.csv`	50 rows	72-hour forward projection with risk scoring
-Terminal Classification
-Type	Distance	Emergency Multiplier
-Local	< 25 miles	2.5x scheduled cost
-Remote	25–99 miles	3.0x scheduled cost
-Over The Road	100+ miles	4.0x scheduled cost
-Tax Season Demand Weights by Location Type
-Location Type	Tax Season Sensitivity	Rationale
-Retail	Full (1.0x)	Highest concentration of cash-preferred customers
-Urban	Full (1.0x)	Dense population receiving refunds
-Mall	Moderate (0.85x)	Refund spending, but card usage higher
-Casino	Moderate (0.70x)	Refund-flush customers, card-heavy environment
-Airport / Hospital / Office	Low (0.50x)	Transaction-driven, not refund-driven
-Tax Service Proximity	2.0x during peak	Direct adjacency to tax preparation office
+
+- Full calendar year (366 days — 2024 is a leap year) of time-series transaction data
+- Tax season demand modeling — peak refund window, ramp periods, location-type weighting
+- Tax service proximity flagging — 5 machines reclassified to Zero tolerance during peak window
+- Day-of-week demand patterns — Friday/Saturday peaks built into every machine
+- Forward-looking 72-hour cash burn forecast — per machine, per terminal tier
+- Composite risk scoring — cash level + terminal type + cash tolerance + revenue impact
+- Interactive Tableau dashboard — 6-panel operational view of network health
+
+### Dataset Structure
+
+| Table | Records | Description |
+|---|---|---|
+| `atm_master.csv` | 50 ATMs | Master reference — location, terminal type, capacity, tolerance, tax service proximity |
+| `atm_transactions.csv` | 18,300 rows | 366-day daily transaction time series |
+| `atm_forecast.csv` | 50 rows | 72-hour forward projection with risk scoring |
+
+### Terminal Classification
+
+| Type | Distance | Emergency Multiplier |
+|---|---|---|
+| Local | < 25 miles | 2.5x scheduled cost |
+| Remote | 25–99 miles | 3.0x scheduled cost |
+| Over The Road | 100+ miles | 4.0x scheduled cost |
+
+### Tax Season Demand Weights by Location Type
+
+| Location Type | Tax Season Sensitivity | Rationale |
+|---|---|---|
+| Retail | Full (1.0x) | Highest concentration of cash-preferred customers |
+| Urban | Full (1.0x) | Dense population receiving refunds |
+| Mall | Moderate (0.85x) | Refund spending, but card usage higher |
+| Casino | Moderate (0.70x) | Refund-flush customers, card-heavy environment |
+| Airport / Hospital / Office | Low (0.50x) | Transaction-driven, not refund-driven |
+| Tax Service Proximity | 2.0x during peak | Direct adjacency to tax preparation office |
+
+
 ---
-Operational Intelligence Summary
+
+## Operational Intelligence Summary
+
 > This model doesn't just show what is happening — it tells operations teams what to do next.
-Headline KPIs (72-Hour Window)
-	Metric	Value
-💰	Revenue at Risk	$634,320
-🚨	Critical ATMs Requiring Action	5 locations
-⚡	Immediate Dispatch Required	5 machines
-⏱	Avg Days to Failure (At-Risk Units)	0.9 days
+
+### Headline KPIs (72-Hour Window)
+
+|  | Metric | Value |
+|---|---|---|
+| 💰 | Revenue at Risk (25 below-threshold ATMs, full 72-hr outage) | $634,320 |
+| 🚨 | CRITICAL risk tier (score 140+) | 5 locations |
+| ⚡ | Immediate Dispatch Required | 5 machines |
+| ⏱ | Avg days until empty, CRITICAL + HIGH tier | 0.9 days |
+
+
 ---
-Recommended Action Framework
-Risk Tier	Score Threshold	Action Required
-CRITICAL	140+	Immediate dispatch — do not wait for scheduled route
-HIGH	100–139	Schedule next route — prioritize within 24 hours
-MEDIUM	60–99	Monitor closely — flag for next scheduled run
-LOW	<60	Standard schedule — no intervention needed
+
+### Recommended Action Framework
+
+| Risk Tier | Score Threshold | Action Required |
+|---|---|---|
+| CRITICAL | 140+ | Immediate dispatch — do not wait for scheduled route |
+| HIGH | 100–139 | Schedule next route — prioritize within 24 hours |
+| MEDIUM | 60–99 | Monitor closely — flag for next scheduled run |
+| LOW | <60 | Standard schedule — no intervention needed |
+
+
 ---
-Top 10 ATMs — Operational Action Register
-Rank	ATM	Location	Terminal Type	Days Until Empty	Revenue at Risk	Tier	Action
-#1	ATM038	Lake Charles Casino LA	Over The Road	<1 day	$61,200	CRITICAL	IMMEDIATE DISPATCH
-#2	ATM008	Laughlin Casino NV	Over The Road	<1 day	$61,200	CRITICAL	IMMEDIATE DISPATCH
-#3	ATM007	Tunica Casino MS	Over The Road	<1 day	$61,200	CRITICAL	IMMEDIATE DISPATCH
-#4	ATM010	Shreveport Casino LA	Over The Road	1.2 days	$61,200	CRITICAL	IMMEDIATE DISPATCH
-#5	ATM009	Biloxi Casino MS	Remote	<1 day	$61,200	CRITICAL	IMMEDIATE DISPATCH
-#6	ATM047	Victoria Mall	Over The Road	<1 day	$17,280	HIGH	Schedule Next Route
-#7	ATM049	Palacios Waterfront	Over The Road	<1 day	$13,680	HIGH	Schedule Next Route
-#8	ATM003	IAH Airport Terminal A	Local	<1 day	$30,240	HIGH	Schedule Next Route
-#9	ATM005	Hobby Airport Concourse	Local	<1 day	$30,240	HIGH	Schedule Next Route
-#10	ATM004	IAH Airport Terminal B	Local	1.0 days	$30,240	HIGH	Schedule Next Route
+
+### Top 10 ATMs — Operational Action Register
+
+| Rank | ATM | Location | Terminal Type | Days Until Empty | Revenue at Risk | Tier | Action |
+|---|---|---|---|---|---|---|---|
+| #1 | ATM038 | Lake Charles Casino LA | Over The Road | <1 day | $61,200 | CRITICAL | IMMEDIATE DISPATCH |
+| #2 | ATM008 | Laughlin Casino NV | Over The Road | <1 day | $61,200 | CRITICAL | IMMEDIATE DISPATCH |
+| #3 | ATM007 | Tunica Casino MS | Over The Road | <1 day | $61,200 | CRITICAL | IMMEDIATE DISPATCH |
+| #4 | ATM010 | Shreveport Casino LA | Over The Road | 1.2 days | $61,200 | CRITICAL | IMMEDIATE DISPATCH |
+| #5 | ATM009 | Biloxi Casino MS | Remote | <1 day | $61,200 | CRITICAL | IMMEDIATE DISPATCH |
+| #6 | ATM047 | Victoria Mall | Over The Road | <1 day | $17,280 | HIGH | Schedule Next Route |
+| #7 | ATM049 | Palacios Waterfront | Over The Road | <1 day | $13,680 | HIGH | Schedule Next Route |
+| #8 | ATM003 | IAH Airport Terminal A | Local | <1 day | $30,240 | HIGH | Schedule Next Route |
+| #9 | ATM005 | Hobby Airport Concourse | Local | <1 day | $30,240 | HIGH | Schedule Next Route |
+| #10 | ATM004 | IAH Airport Terminal B | Local | 1.0 days | $30,240 | HIGH | Schedule Next Route |
+
+
 ---
-Network Summary (72-Hour Forecast Window)
-50 ATMs monitored across the network
-25 flagged critical within 72 hours
-6 Over The Road terminals in critical status
-5 tax service proximity machines reclassified to Zero tolerance during peak
-$634,320 revenue at risk in a full 72-hour outage scenario
+
+### Network Summary (72-Hour Forecast Window)
+
+- 50 ATMs monitored across the network
+- 25 projected below their critical cash threshold within 72 hours (5 of them reach the CRITICAL risk tier)
+- 6 Over The Road terminals in critical status
+- 5 tax service proximity machines reclassified to Zero tolerance during peak
+- $634,320 revenue at risk in a full 72-hour outage scenario
+
 ---
-Interactive Dashboard
-🔗 View Live on Tableau Public
+
+## Interactive Dashboard
+
+🔗 [View Live on Tableau Public](https://public.tableau.com/app/profile/sean.codner/viz/ATMPredictiveDemandModel/Dashboard1)
 ![ATM Predictive Demand Dashboard](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/atm_predictive_dashboard.png)
+
 ---
-Composite Risk Score Formula
+
+## Composite Risk Score Formula
+
 ```
 Risk Score =
   Cash Depletion Weight   (max 60 pts — how far below threshold)
@@ -148,34 +220,65 @@ Risk Score =
 + Revenue Impact Weight   (hourly revenue impact / 20)
 + Tax Proximity Premium   (+25 pts during Feb 15 – Mar 15 peak)
 ```
+
 ---
-Model Validation
-Validated against a 31-day holdout period (December 2024) using 1,550 daily predictions.
-Metric	Result
-Mean Absolute Error (MAE)	$880/day
-Root Mean Square Error (RMSE)	$1,439/day
-Mean Absolute Pct Error (MAPE)	5.6%
-Predictions within 10% of actual	84.2%
-Predictions within 20% of actual	99.7%
-Critical flag recall	98.9%
-Critical flag precision	98.5%
-F1 Score	0.987
-Recall of 98.9% means the model correctly identifies 98.9% of machines that will go critical in the 72-hour window. In ATM operations, false negatives are far more costly than false positives — the model is tuned to maximize recall.
+
+## Model Validation
+
+Validated against a 31-day holdout (December 2024): 1,550 daily predictions, and 1,400 machine-days scored for 72-hour critical flags (Dec 1–28).
+
+| Metric | Result |
+|---|---|
+| Mean Absolute Error (MAE) | $880/day |
+| Root Mean Square Error (RMSE) | $1,439/day |
+| Mean Absolute Pct Error (MAPE) | 5.6% |
+| Predictions within 10% of actual | 84.2% |
+| Predictions within 20% of actual | 99.7% |
+| Critical flag recall | 98.9% |
+| Critical flag precision | 98.5% |
+| F1 Score | 0.987 |
+
+### What this validation shows — and what it doesn't
+
+The data is synthetic. It is generated from the same structure the forecast uses: base demand by location type × day-of-week × season × 7% random day-to-day noise, and the December prediction applies the generator's own holiday factor (1.18). So the holdout confirms the pipeline recovers that structure correctly. The 5.6% MAPE equals the average size of the injected noise (about 5.6%), which is the lowest error any forecast could reach on this data. It is a correctness check, not evidence of real-world forecast accuracy.
+
+The meaningful result is the comparison against the naive rule most dispatch reporting uses, a flat trailing 7-day average, scored on the identical task:
+
+| Metric | This model (day-of-week + seasonal) | Naive (trailing 7-day average) |
+|---|---|---|
+| 72-hour demand MAPE | 3.4% | 13.8% |
+| Critical flag precision | 0.985 | 0.949 |
+| Critical flag recall | 0.989 | 0.947 |
+| F1 score | 0.987 | 0.948 |
+
+When demand has weekly and seasonal structure, forecasting with it roughly quarters the 72-hour error and cuts missed critical flags from 5.3% to 1.1%. On a real network, both models would need re-measuring on real transactions, and the seasonal factors would be estimated from data rather than set.
+Run `python tests/verify_published_numbers.py` to reproduce every number in this README from the notebook's code.
+
 ---
-Feature Engineering
-Feature	Source	Rationale
-`terminal_type`	`distance_from_branch_miles`	Distance drives emergency cost (2.5x–4.0x). OTR machines are categorically more urgent — standard reporting treats all distances equally.
-`cash_tolerance`	`location_type`	Business context defines acceptable minimum. A casino cannot tolerate outage. A rural retail ATM can. Volume alone misses this.
-`days_until_empty`	`cash_balance_eod` + burn rate	Forward-looking trajectory vs backward-looking balance snapshot.
-`dow_avg_burn`	`daily_cash_dispensed` + day of week	Friday/Saturday demand is 42–73% above Monday baseline. Forecasting without this systematically underestimates weekend burn.
-`seasonal_multiplier`	`transaction_date` + `location_type`	Tax peak drives 40–60% lift at Retail/Urban. Domain-calibrated from live network operations — not assumed.
-`tax_service_proximity`	Operational flag + date	Reclassifies machines near tax offices to Zero tolerance Feb 15–Mar 15. Corrects a blindspot standard reporting cannot see.
-`composite_risk_score`	All features combined	Single sortable number replacing volume-based ranking with multi-factor operational prioritization.
+
+## Feature Engineering
+
+| Feature | Source | Rationale |
+|---|---|---|
+| `terminal_type` | `distance_from_branch_miles` | Distance drives emergency cost (2.5x–4.0x). OTR machines are categorically more urgent, and a balance snapshot alone doesn't reflect that. |
+| `cash_tolerance` | `location_type` | Business context defines acceptable minimum. A casino cannot tolerate outage. A rural retail ATM can. Volume alone misses this. |
+| `days_until_empty` | `cash_balance_eod` + burn rate | Forward-looking trajectory vs backward-looking balance snapshot. |
+| `dow_avg_burn` | `daily_cash_dispensed` + day of week | Friday/Saturday demand is 42–73% above Monday baseline. Forecasting without this systematically underestimates weekend burn. |
+| `seasonal_multiplier` | `transaction_date` + `location_type` | Tax peak drives 40–60% lift at Retail/Urban. Set from live network operations experience (a stated assumption). |
+| `tax_service_proximity` | Operational flag + date | Reclassifies machines near tax offices to Zero tolerance Feb 15–Mar 15. Addresses a blind spot that balance-only reporting may not capture. |
+| `composite_risk_score` | All features combined | Single sortable number replacing volume-based ranking with multi-factor operational prioritization. |
+
+
 ---
-SQL Foundation Layer
+
+## SQL Foundation Layer
+
 The Python model replicates analytical logic that would run as SQL against a production database. The five queries below demonstrate the full pipeline — from raw transaction data to risk scoring — using joins, CTEs, and window functions.
+
 ---
-Query 1 — Daily Cash Burn Rate (Rolling 30-Day Average)
+
+### Query 1 — Daily Cash Burn Rate (Rolling 30-Day Average)
+
 Window functions: `AVG() OVER`, `RANK() OVER`, `PARTITION BY`
 ```sql
 SELECT
@@ -204,13 +307,16 @@ SELECT
 FROM atm_transactions t
 INNER JOIN atm_master l
     ON t.atm_id = l.atm_id
-WHERE t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+WHERE t.transaction_date >= '2024-12-01'
 ORDER BY t.atm_id, t.transaction_date;
 ```
 Live execution output — MySQL Workbench:
 > *Query 1 shares the rolling burn rate logic validated in Query 2's output below. See `screenshots/atm_query2_72hr_forecast.png` for the window function results in action.*
+
 ---
-Query 2 — 72-Hour Cash Runway Forecast
+
+### Query 2 — 72-Hour Cash Runway Forecast
+
 Window functions: `LAG()`, rolling `AVG() OVER` with frame specification, CTEs
 ```sql
 WITH daily_burn AS (
@@ -234,7 +340,7 @@ WITH daily_burn AS (
             ROWS BETWEEN 13 PRECEDING AND 7 PRECEDING
         ) AS prior_week_avg_burn
     FROM atm_transactions t
-    WHERE t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+    WHERE t.transaction_date >= '2024-12-01'
 ),
 forecast AS (
     SELECT
@@ -291,8 +397,11 @@ ORDER BY projected_pct_remaining ASC;
 Live execution output — MySQL Workbench:
 ![Query 2 — 72-Hour Forecast Results (Top)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query2_72hr_forecast.png)
 ![Query 2 — 72-Hour Forecast Results (Full)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query2_72hr_forecast2.png)
+
 ---
-Query 3 — Composite Risk Score Priority Register
+
+### Query 3 — Composite Risk Score Priority Register
+
 Window functions: `RANK() OVER`, `PERCENT_RANK() OVER`, `PARTITION BY`
 ```sql
 WITH risk_scored AS (
@@ -320,7 +429,7 @@ WITH risk_scored AS (
         END +
         (f.revenue_impact_per_hour / 20) +
         CASE WHEN f.tax_service_proximity = TRUE
-              AND MONTH(CURDATE()) IN (2,3) THEN 25 ELSE 0
+              AND (SELECT MAX(transaction_date) FROM atm_transactions) BETWEEN '2024-02-15' AND '2024-03-15' THEN 25 ELSE 0
         END AS composite_risk_score
     FROM forecast f
 )
@@ -339,8 +448,11 @@ ORDER BY composite_risk_score DESC;
 Live execution output — MySQL Workbench:
 ![Query 3 — Risk Score Results](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query3_risk_score.png)
 ![Query 3 — Risk Score Priority Rank](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query3_risk_score2.png)
+
 ---
-Query 4 — Tax Season Demand Pattern Analysis
+
+### Query 4 — Tax Season Demand Pattern Analysis
+
 Window functions: Seasonal lift vs baseline using CTEs and `INNER JOIN`
 ```sql
 WITH seasonal_stats AS (
@@ -386,8 +498,11 @@ ORDER BY ss.location_type, ss.tax_service_proximity DESC, pct_lift_vs_baseline D
 Live execution output — MySQL Workbench:
 ![Query 4 — Tax Season Analysis (Code)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query4_tax_season.png)
 ![Query 4 — Tax Season Analysis (Results)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query4_tax_season2.png)
+
 ---
-Query 5 — Day-of-Week Demand Pattern by Terminal Tier
+
+### Query 5 — Day-of-Week Demand Pattern by Terminal Tier
+
 Window functions: Nested `AVG() OVER (PARTITION BY)` for demand index
 ```sql
 SELECT
@@ -416,18 +531,30 @@ ORDER BY l.terminal_type, DAYOFWEEK(t.transaction_date);
 Live execution output — MySQL Workbench:
 ![Query 5 — Day of Week Demand (Code)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query5_dow_demand.png)
 ![Query 5 — Day of Week Demand (Results)](https://raw.githubusercontent.com/SEANSKIDATA/ATM-Predictive-Demand-Model/main/screenshots/atm_query5_dow_demand2.png)
+
 ---
-Technical Skills Demonstrated
+
+## Technical Skills Demonstrated
+
 `Python` · `Pandas` · `NumPy` · `Matplotlib` · `Tableau` · `SQL` · `Window Functions` · `CTEs` · `Time-Series Analysis` · `Predictive Modeling` · `Seasonal Demand Modeling` · `Synthetic Dataset Design` · `Operational Risk Scoring` · `Data Visualization` · `Model Validation`
+
 ---
-Portfolio Progression
-Project	Tool	Business Question
-ATM-Network-Risk-Intelligence	SQL	What is the current risk state of the network?
-ATM-Network-Analysis-Version-2	SQL	How do we prioritize replenishment decisions?
-ATM-Predictive-Demand-Model	Python + Tableau	Which ATMs will go critical in the next 72 hours?
+
+## Portfolio Progression
+
+| Project | Tool | Business Question |
+|---|---|---|
+| [ATM-Network-Risk-Intelligence](https://github.com/SEANSKIDATA/ATM-Network-Risk-Intelligence) | SQL | What is the current risk state of the network? |
+| [ATM-Network-Analysis-Version-2](https://github.com/SEANSKIDATA/ATM-Network-Analysis-Version-2) | SQL | How do we prioritize replenishment decisions? |
+| ATM-Predictive-Demand-Model | Python + Tableau | Which ATMs will go critical in the next 72 hours? |
+
+
 ---
-Data Disclosure
+
+## Data Disclosure
+
 All data in this project is synthetic — purpose-built to reflect realistic ATM network operating conditions including real-world seasonal demand patterns. No proprietary, personally identifiable, or confidential information is included.
+
 ---
 Sean Codner — Operations Data Analyst | Houston, TX
 GitHub: SEANSKIDATA | LinkedIn: Sean Codner
